@@ -44,6 +44,7 @@ jobs:
             --max-build-processing-wait 0
 
   upload-auditera:
+
     runs-on: macos-latest
     if: ${{ inputs.app == 'auditera' || inputs.app == 'both' }}
     steps:
@@ -71,4 +72,5 @@ jobs:
           echo "Uploading: $IPA"
           app-store-connect publish \
             --path "$IPA" \
-            --max-build-processing-wait 0
+            --max-build-processing-wait 0 \
+            --verbose || cat /var/folders/*/*/T/codemagic-*.log 2>/dev/null || true
