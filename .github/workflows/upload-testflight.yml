@@ -13,13 +13,14 @@ on:
           - both
 
 jobs:
-  upload:
+  upload-replona:
     runs-on: macos-latest
+    if: ${{ inputs.app == 'replona' || inputs.app == 'both' }}
     steps:
       - name: Install codemagic-cli-tools
         run: pip3 install codemagic-cli-tools --break-system-packages
 
-      - name: Download IPA files from release
+      - name: Download IPA from release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -27,11 +28,10 @@ jobs:
           gh release download latest \
             --repo ${{ github.repository }} \
             --dir ipa \
-            --pattern "*.ipa"
+            --pattern "replona*.ipa"
           ls -la ipa/
 
       - name: Upload Replona to TestFlight
-        if: ${{ inputs.app == 'replona' || inputs.app == 'both' }}
         env:
           APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.ASC_KEY_ID }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
@@ -43,14 +43,31 @@ jobs:
             --path "$IPA" \
             --max-build-processing-wait 0
 
+  upload-auditera:
+    runs-on: macos-latest
+    if: ${{ inputs.app == 'auditera' || inputs.app == 'both' }}
+    steps:
+      - name: Install codemagic-cli-tools
+        run: pip3 install codemagic-cli-tools --break-system-packages
+
+      - name: Download IPA from release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mkdir -p ipa
+          gh release download latest \
+            --repo ${{ github.repository }} \
+            --dir ipa \
+            --pattern "Auditera*.ipa"
+          ls -la ipa/
+
       - name: Upload Auditera to TestFlight
-        if: ${{ inputs.app == 'auditera' || inputs.app == 'both' }}
         env:
           APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.ASC_KEY_ID }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
         run: |
-          IPA=$(find ipa -name "Auditera*.ipa" || find ipa -name "auditera*.ipa" | head -1)
+          IPA=$(find ipa -name "Auditera*.ipa" | head -1)
           echo "Uploading: $IPA"
           app-store-connect publish \
             --path "$IPA" \
